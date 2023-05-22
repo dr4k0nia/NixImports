@@ -28,3 +28,5 @@ It will automatically generate a new executable called Loader.exe in it's root f
 ## Tips for Defenders
 
 If youre interested in detection engineering and possible detection of NixImports, checkout [the last section of my blog post](https://dr4k0nia.github.io/posts/NixImports-a-NET-loader-using-HInvoke/#tips-for-defenders)
+
+Or [click here](https://github.com/dr4k0nia/yara-rules/blob/main/dotnet/msil_mal_niximports_loader.yar) for a basic yara rule covering NixImports.
