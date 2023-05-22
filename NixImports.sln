@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NixImports", "NixImports\NixImports.csproj", "{21A6274F-49A0-428C-ABB7-5C35B23D3959}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F17D9F88-7109-4683-9939-D0F2D18E847E} = {F17D9F88-7109-4683-9939-D0F2D18E847E}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loader", "Loader\Loader.csproj", "{F17D9F88-7109-4683-9939-D0F2D18E847E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21A6274F-49A0-428C-ABB7-5C35B23D3959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21A6274F-49A0-428C-ABB7-5C35B23D3959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21A6274F-49A0-428C-ABB7-5C35B23D3959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21A6274F-49A0-428C-ABB7-5C35B23D3959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F17D9F88-7109-4683-9939-D0F2D18E847E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F17D9F88-7109-4683-9939-D0F2D18E847E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F17D9F88-7109-4683-9939-D0F2D18E847E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F17D9F88-7109-4683-9939-D0F2D18E847E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
